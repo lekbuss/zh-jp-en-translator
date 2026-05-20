@@ -336,35 +336,10 @@ body {
   font-size: 12px;
   color: var(--text-faint);
 }
-.lp-tabs {
-  display: flex;
-  gap: 4px;
-  margin-left: auto;
-}
-.lp-tab {
-  font-size: 12px;
-  font-weight: 700;
-  padding: 4px 14px;
-  border-radius: 12px;
-  border: none;
-  cursor: pointer;
-  background: rgba(0,0,0,0.05);
-  color: var(--text-muted);
-  font-family: inherit;
-  transition: all 0.15s;
-}
-.dark .lp-tab { background: rgba(255,255,255,0.06); }
-.lp-tab.active {
-  background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
-  color: #fff;
-}
-
 /* Vocab rows */
 .vocab-row {
-  display: grid;
-  grid-template-columns: 150px 120px 90px 1fr 36px;
-  align-items: center;
-  padding: 13px 22px;
+  display: flex;
+  flex-direction: column;
   border-bottom: 1px solid var(--border2);
   cursor: pointer;
   transition: background 0.15s;
@@ -372,9 +347,15 @@ body {
 }
 .vocab-row:last-child { border-bottom: none; }
 .vocab-row:hover { background: var(--surface2); }
-.vocab-row.saved { cursor: default; }
-.vocab-row.saved:hover { background: transparent; }
+.vocab-row.saved { cursor: pointer; }
 .vocab-row.saving { opacity: 0.5; pointer-events: none; }
+
+.vocab-row-main {
+  display: grid;
+  grid-template-columns: 150px 120px 90px 1fr 36px;
+  align-items: center;
+  padding: 13px 22px;
+}
 
 .vocab-word {
   font-size: 18px;
@@ -407,6 +388,41 @@ body {
   font-size: 15px;
   color: var(--text-muted);
   padding-left: 14px;
+}
+
+/* Expandable example sentence */
+.vocab-row-example {
+  display: none;
+  padding: 0 22px 12px 22px;
+  border-top: 1px solid var(--border2);
+  margin: 0 0 0 0;
+}
+.vocab-row.expanded .vocab-row-example { display: block; }
+.vocab-row.expanded .vocab-row-main { padding-bottom: 10px; }
+.example-ja {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.7;
+  margin-top: 10px;
+}
+.example-zh {
+  font-size: 13px;
+  color: var(--text-faint);
+  font-style: italic;
+  margin-top: 3px;
+  line-height: 1.6;
+}
+
+/* Section divider inside learning panel */
+.lp-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  padding: 12px 22px 8px;
+  border-top: 1px solid var(--border2);
+  margin-top: 4px;
 }
 
 .save-btn {
@@ -592,16 +608,13 @@ body {
   <div id="learning-panel">
     <div class="lp-header">
       <span class="lp-title">学习面板</span>
-      <span class="lp-hint">点击单词保存</span>
-      <div class="lp-tabs">
-        <button class="lp-tab active" data-section="vocab">词汇</button>
-        <button class="lp-tab" data-section="grammar">语法</button>
-      </div>
+      <span class="lp-hint">点击单词展开例句 · 点击 ＋ 保存</span>
     </div>
     <div id="vocab-section">
       <div id="vocab-word-list"></div>
     </div>
-    <div id="grammar-section" style="display:none">
+    <div id="grammar-section">
+      <div class="lp-section-title">语法要点</div>
       <div class="grammar-list" id="grammar-container"></div>
     </div>
   </div>
@@ -719,16 +732,6 @@ body {
     });
   });
 
-  // ── Learning panel tabs ──
-  document.querySelectorAll('.lp-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.lp-tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      const section = tab.dataset.section;
-      document.getElementById('vocab-section').style.display   = section === 'vocab'   ? '' : 'none';
-      document.getElementById('grammar-section').style.display = section === 'grammar' ? '' : 'none';
-    });
-  });
 
   // ── Copy button ──
   document.getElementById('copy-btn').addEventListener('click', () => {
@@ -881,27 +884,37 @@ body {
 
   // ── Learning panel ──
   function showLearningPanel(vocab, grammar) {
-    // Reset to vocab tab
-    document.querySelectorAll('.lp-tab').forEach(t => {
-      t.classList.toggle('active', t.dataset.section === 'vocab');
-    });
-    document.getElementById('vocab-section').style.display   = '';
-    document.getElementById('grammar-section').style.display = 'none';
 
     // Build vocab rows
     vocabWordList.innerHTML = '';
     (vocab || []).forEach(v => {
       const row = document.createElement('div');
       row.className = 'vocab-row';
+      const hasExample = v.example || v.example_zh;
       row.innerHTML = `
-        <span class="vocab-word">${esc(v.word)}</span>
-        <span class="vocab-reading">${esc(v.reading || '')}</span>
-        <span class="type-pill ${getTypeClass(v.type)}">${esc(v.type || '')}</span>
-        <span class="vocab-meaning">${esc(v.meaning || '')}</span>
-        <button class="save-btn" title="保存到词汇本">＋</button>
+        <div class="vocab-row-main">
+          <span class="vocab-word">${esc(v.word)}</span>
+          <span class="vocab-reading">${esc(v.reading || '')}</span>
+          <span class="type-pill ${getTypeClass(v.type)}">${esc(v.type || '')}</span>
+          <span class="vocab-meaning">${esc(v.meaning || '')}</span>
+          <button class="save-btn" title="保存到词汇本">＋</button>
+        </div>
+        ${hasExample ? `<div class="vocab-row-example">
+          <div class="example-ja">${esc(v.example || '')}</div>
+          <div class="example-zh">${esc(v.example_zh || '')}</div>
+        </div>` : ''}
       `;
       const saveBtn = row.querySelector('.save-btn');
-      row.addEventListener('click', async () => {
+
+      // Click row body → toggle example
+      row.addEventListener('click', (e) => {
+        if (e.target === saveBtn || saveBtn.contains(e.target)) return;
+        if (hasExample) row.classList.toggle('expanded');
+      });
+
+      // Click save button → save word
+      saveBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
         if (row.classList.contains('saved') || row.classList.contains('saving')) return;
         row.classList.add('saving');
         try {
@@ -936,9 +949,9 @@ body {
       grammarContainer.appendChild(div);
     });
 
-    // Show grammar tab only if there's grammar data
-    const grammarTab = document.querySelector('.lp-tab[data-section="grammar"]');
-    grammarTab.style.display = grammar && grammar.length > 0 ? '' : 'none';
+    // Show grammar section only if there's data
+    document.getElementById('grammar-section').style.display =
+      grammar && grammar.length > 0 ? '' : 'none';
 
     learningPanel.classList.add('visible');
   }
