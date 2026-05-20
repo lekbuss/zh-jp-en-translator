@@ -3,393 +3,467 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>中日翻译学习工具</title>
+<title>翻译学习工具</title>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── CSS 变量（亮色/暗色） ── */
 :root {
-  --bg: #f8f9fa;
+  --bg: #faf8f5;
   --surface: #ffffff;
-  --surface2: #f3f4f6;
-  --border: #e0e0e0;
-  --border2: #f0f0f0;
-  --text: #2c3e50;
-  --text-muted: #666;
-  --text-faint: #bbb;
-  --nav-bg: #ffffff;
-  --divider-bg: #e8e8e8;
-  --sk1: #f0f0f0;
-  --sk2: #e0e0e0;
-  --accent: #4f46e5;
-  --accent-bg: #eef2ff;
+  --surface2: #f5f2ee;
+  --border: rgba(0,0,0,0.07);
+  --border2: #f0ede8;
+  --text: #111111;
+  --text-muted: #666666;
+  --text-faint: #c0bbb5;
+  --topbar-bg: rgba(255,255,255,0.80);
+  --card-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 6px 20px rgba(0,0,0,0.07), 0 16px 48px rgba(0,0,0,0.04);
+  --grad-start: #ff8c42;
+  --grad-end: #9b59f6;
+  --sk1: #f0ede8;
+  --sk2: #e4e0da;
 }
 .dark {
-  --bg: #0f1117;
-  --surface: #1a1d27;
-  --surface2: #222635;
-  --border: #2d3148;
-  --border2: #252840;
-  --text: #e2e8f0;
-  --text-muted: #8892a4;
-  --text-faint: #444c60;
-  --nav-bg: #13151f;
-  --divider-bg: #2d3148;
-  --sk1: #1e2235;
-  --sk2: #262a3d;
-  --accent: #7c75f2;
-  --accent-bg: #1e1f3a;
+  --bg: #0f0f0e;
+  --surface: #1c1b19;
+  --surface2: #252420;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.06);
+  --text: #e8e5e0;
+  --text-muted: #a09890;
+  --text-faint: #504840;
+  --topbar-bg: rgba(15,15,14,0.85);
+  --card-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 6px 20px rgba(0,0,0,0.4);
+  --sk1: #252420;
+  --sk2: #2e2c28;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', 'Noto Sans JP', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+               "Helvetica Neue", "Noto Sans SC", "Noto Sans JP", sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
-  transition: background .2s, color .2s;
+  display: flex;
+  flex-direction: column;
+  transition: background 0.2s, color 0.2s;
 }
 
-/* ── NAV ── */
-nav {
-  background: var(--nav-bg);
-  border-bottom: 1px solid var(--border);
-  padding: 0 24px;
+/* ── Topbar ── */
+.topbar {
   display: flex;
   align-items: center;
-  height: 56px;
-  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  justify-content: space-between;
+  padding: 10px 24px;
+  background: var(--topbar-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   z-index: 100;
+  height: 56px;
+  flex-shrink: 0;
 }
+.topbar-left  { display: flex; align-items: center; gap: 12px; }
+.topbar-right { display: flex; align-items: center; gap: 8px; }
 
-.brand {
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: -.3px;
-  margin-right: 24px;
+.mode-switcher {
+  display: flex;
+  background: rgba(0,0,0,0.06);
+  border-radius: 22px;
+  padding: 3px;
+  gap: 2px;
 }
-
-.tabs { display: flex; gap: 4px; flex: 1; }
-
-.tab-btn {
-  padding: 6px 16px;
+.dark .mode-switcher { background: rgba(255,255,255,0.08); }
+.mode-btn {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 5px 16px;
+  border-radius: 18px;
+  cursor: pointer;
   border: none;
   background: none;
-  border-radius: 6px;
+  color: var(--text-muted);
+  font-family: inherit;
+  transition: all 0.2s;
+}
+.mode-btn.active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.13);
+}
+
+.tabs { display: flex; gap: 2px; }
+.tab-btn {
+  padding: 5px 14px;
+  border: none;
+  background: none;
+  border-radius: 10px;
   cursor: pointer;
   font-size: 14px;
+  font-weight: 600;
   color: var(--text-muted);
-  transition: all .15s;
+  font-family: inherit;
+  transition: all 0.15s;
 }
-.tab-btn.active { background: var(--accent-bg); color: var(--accent); font-weight: 600; }
-.tab-btn:hover:not(.active) { background: var(--surface2); }
+.tab-btn.active { background: rgba(0,0,0,0.06); color: var(--text); }
+.dark .tab-btn.active { background: rgba(255,255,255,0.08); }
 
 .badge {
   display: inline-block;
-  background: var(--accent);
+  background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
   color: #fff;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   border-radius: 10px;
   padding: 1px 6px;
-  margin-left: 6px;
+  margin-left: 4px;
   vertical-align: middle;
-  min-width: 20px;
+  min-width: 18px;
   text-align: center;
 }
 .badge:empty { display: none; }
 
-/* 模式切换 */
-.mode-btns {
+.style-pill {
   display: flex;
-  gap: 2px;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  background: rgba(0,0,0,0.06);
+  border-radius: 22px;
   padding: 3px;
-  margin-right: 16px;
 }
-.mode-btn {
-  padding: 4px 14px;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  cursor: pointer;
+.dark .style-pill { background: rgba(255,255,255,0.08); }
+.style-opt {
   font-size: 13px;
   font-weight: 600;
+  padding: 5px 14px;
+  border-radius: 18px;
+  border: none;
+  background: none;
   color: var(--text-muted);
-  transition: all .15s;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
 }
-.mode-btn.active {
-  background: var(--accent);
+.style-opt.active {
+  background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
   color: #fff;
 }
 
-/* 暗色模式按钮 */
 #dark-toggle {
-  margin-left: auto;
-  width: 36px;
-  height: 36px;
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface2);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.06);
+  border: none;
   cursor: pointer;
-  font-size: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all .15s;
-  flex-shrink: 0;
+  font-size: 16px;
+  transition: background 0.15s;
 }
-#dark-toggle:hover { border-color: var(--accent); }
+.dark #dark-toggle { background: rgba(255,255,255,0.08); }
 
-/* ── MAIN ── */
-main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
+/* ── Main layout ── */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 24px 0;
+  gap: 14px;
+  min-height: 0;
+}
 
-/* 风格切换 */
-.style-row { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
-.style-label { font-size: 13px; color: var(--text-muted); }
-.style-btn {
-  padding: 5px 16px;
-  border: 1.5px solid var(--border);
-  border-radius: 20px;
+.panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  height: 44vh;
+  min-height: 280px;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
   background: var(--surface);
+  border-radius: 20px;
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  position: relative;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 20px 11px;
+  border-bottom: 1px solid var(--border2);
+  flex-shrink: 0;
+  gap: 10px;
+}
+.lang-label {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+.panel-target .lang-label {
+  background: linear-gradient(90deg, var(--grad-start), var(--grad-end));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.char-count {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-faint);
+  margin-left: auto;
+}
+.copy-btn {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-faint);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-family: inherit;
+  transition: color 0.15s, background 0.15s;
+  margin-left: auto;
+}
+.copy-btn:hover { background: var(--surface2); color: var(--text-muted); }
+
+.clear-btn {
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: rgba(0,0,0,0.05);
+  border-radius: 50%;
   cursor: pointer;
   font-size: 13px;
   color: var(--text-muted);
-  transition: all .15s;
-}
-.style-btn.active { border-color: var(--accent); background: var(--accent); color: #fff; }
-
-/* ── 翻译区 ── */
-.translation-container {
-  display: grid;
-  grid-template-columns: 1fr 3px 1fr;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,.05);
-  min-height: 220px;
-}
-
-.pane { display: flex; flex-direction: column; position: relative; }
-
-.pane-header {
-  padding: 10px 16px 8px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: .6px;
-  border-bottom: 1px solid var(--border2);
-  display: flex;
+  display: none;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s;
+  line-height: 1;
 }
-.pane-header .lang-dot { width: 8px; height: 8px; border-radius: 50%; }
-.pane:first-child .lang-dot { background: #e74c3c; }
-.pane:last-child .lang-dot { background: #e84393; }
+.dark .clear-btn { background: rgba(255,255,255,0.07); }
+.clear-btn.visible { display: flex; }
+.clear-btn:hover { background: rgba(0,0,0,0.10); }
 
-.pane textarea {
+.panel textarea {
   flex: 1;
+  padding: 18px 20px;
+  font-size: 19px;
+  line-height: 1.75;
+  color: var(--text);
   border: none;
   outline: none;
   resize: none;
-  padding: 14px 16px;
-  font-size: 16px;
-  line-height: 1.7;
-  font-family: inherit;
-  color: var(--text);
   background: transparent;
-  min-height: 160px;
+  font-family: inherit;
+  min-height: 0;
 }
-.pane textarea::placeholder { color: var(--text-faint); }
-
-.divider {
-  background: var(--divider-bg);
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.divider::after {
-  content: '⇄';
-  position: absolute;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  color: var(--text-muted);
-  box-shadow: 0 1px 4px rgba(0,0,0,.1);
-}
+.panel textarea::placeholder { color: var(--text-faint); font-size: 16px; }
 
 /* Skeleton */
 .skeleton-overlay {
   position: absolute;
   inset: 0;
-  top: 41px;
+  top: 52px;
   background: var(--surface);
-  padding: 14px 16px;
+  padding: 18px 20px;
   display: none;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
   pointer-events: none;
+  z-index: 1;
 }
 .skeleton-overlay.active { display: flex; }
 .skeleton-line {
-  height: 18px;
-  border-radius: 4px;
+  height: 22px;
+  border-radius: 6px;
   background: linear-gradient(90deg, var(--sk1) 25%, var(--sk2) 50%, var(--sk1) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
-@keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 
-.char-count { padding: 4px 14px 8px; font-size: 11px; color: var(--text-faint); text-align: right; }
-
-.clear-btn {
-  position: absolute;
-  top: 10px; right: 10px;
-  width: 20px; height: 20px;
-  border: none;
-  background: var(--surface2);
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 12px;
-  color: var(--text-muted);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  z-index: 2;
-}
-.clear-btn.visible { display: flex; }
-.clear-btn:hover { background: var(--border); }
-
+/* Status bar */
 #status-bar {
-  min-height: 22px;
-  margin-top: 8px;
+  min-height: 18px;
   font-size: 12px;
   color: var(--text-faint);
   text-align: right;
+  padding: 0 4px;
 }
 
-/* ── 词汇面板 ── */
-#learning-panel { margin-top: 24px; display: none; }
+/* ── Learning panel ── */
+#learning-panel {
+  display: none;
+  background: var(--surface);
+  border-radius: 20px;
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
 #learning-panel.visible { display: block; }
 
-.panel-section-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-muted);
-  margin-bottom: 10px;
+.lp-header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  padding: 13px 22px 11px;
+  border-bottom: 1px solid var(--border2);
 }
-.panel-section-title::before {
-  content: '';
-  display: block;
-  width: 3px; height: 14px;
-  background: var(--accent);
-  border-radius: 2px;
+.lp-title {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  background: linear-gradient(90deg, var(--grad-start), var(--grad-end));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
-.panel-hint {
-  font-size: 11px;
-  font-weight: 400;
+.lp-hint {
+  font-size: 12px;
   color: var(--text-faint);
-  margin-left: 4px;
 }
-
-/* 词汇行（点击保存） */
-#vocab-word-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
-
-.vocab-row {
+.lp-tabs {
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 13px 16px;
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  border-radius: 10px;
-  cursor: pointer;
-  transition: border-color .15s, box-shadow .15s, opacity .15s;
-  user-select: none;
+  gap: 4px;
+  margin-left: auto;
 }
-.vocab-row:hover { border-color: var(--accent); box-shadow: 0 2px 10px rgba(79,70,229,.12); }
-.vocab-row.saved { border-color: #27ae60; cursor: default; }
-.vocab-row.saved:hover { border-color: #27ae60; box-shadow: none; }
-.vocab-row.saving { opacity: .6; pointer-events: none; }
-
-.vocab-row-left { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 64px; }
-
-.vocab-type {
-  display: inline-block;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 10px;
+.lp-tab {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 14px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  background: rgba(0,0,0,0.05);
+  color: var(--text-muted);
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.dark .lp-tab { background: rgba(255,255,255,0.06); }
+.lp-tab.active {
+  background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
   color: #fff;
 }
-.type-名词 { background: #3498db; }
-.type-动词 { background: #27ae60; }
-.type-形容词 { background: #e67e22; }
-.type-敬語 { background: #9b59b6; }
-.type-副词 { background: #1abc9c; }
-.type-other { background: #95a5a6; }
 
-.vocab-row-word { font-size: 22px; font-weight: 700; line-height: 1.2; }
-.vocab-row-reading { font-size: 12px; color: var(--text-muted); }
+/* Vocab rows */
+.vocab-row {
+  display: grid;
+  grid-template-columns: 150px 120px 90px 1fr 36px;
+  align-items: center;
+  padding: 13px 22px;
+  border-bottom: 1px solid var(--border2);
+  cursor: pointer;
+  transition: background 0.15s;
+  user-select: none;
+}
+.vocab-row:last-child { border-bottom: none; }
+.vocab-row:hover { background: var(--surface2); }
+.vocab-row.saved { cursor: default; }
+.vocab-row.saved:hover { background: transparent; }
+.vocab-row.saving { opacity: 0.5; pointer-events: none; }
 
-.vocab-row-body { flex: 1; }
-.vocab-row-meaning { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 5px; }
-.vocab-row-usage { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
-.vocab-row-usage span { color: var(--text-faint); font-style: italic; }
+.vocab-word {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+.vocab-reading {
+  font-size: 14px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.type-pill {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.3px;
+}
+.type-名词    { background: rgba(155,89,246,0.10); color: #9b59f6; }
+.type-动词    { background: rgba(52,199,89,0.10);  color: #27ae60; }
+.type-形容词  { background: rgba(255,140,66,0.10); color: #e8720c; }
+.type-形容动词{ background: rgba(52,199,89,0.10);  color: #27ae60; }
+.type-副词    { background: rgba(26,188,156,0.10); color: #1abc9c; }
+.type-敬語    { background: rgba(155,89,246,0.10); color: #9b59f6; }
+.type-other   { background: rgba(0,0,0,0.05);      color: var(--text-muted); }
+.dark .type-other { background: rgba(255,255,255,0.07); }
 
-.vocab-row-indicator {
-  flex-shrink: 0;
-  width: 26px;
-  height: 26px;
+.vocab-meaning {
+  font-size: 15px;
+  color: var(--text-muted);
+  padding-left: 14px;
+}
+
+.save-btn {
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  border: 1.5px solid var(--border);
+  background: rgba(0,0,0,0.04);
+  border: none;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 16px;
+  font-weight: 700;
   color: var(--text-faint);
-  transition: all .15s;
-  margin-top: 2px;
+  transition: all 0.15s;
+  flex-shrink: 0;
+  justify-self: end;
+  font-family: inherit;
 }
-.vocab-row:hover .vocab-row-indicator { border-color: var(--accent); color: var(--accent); }
-.vocab-row.saved .vocab-row-indicator { border-color: #27ae60; color: #27ae60; background: #f0faf4; }
-.dark .vocab-row.saved .vocab-row-indicator { background: #0d2e1a; }
+.dark .save-btn { background: rgba(255,255,255,0.05); }
+.save-btn:hover { background: rgba(255,140,66,0.12); color: var(--grad-start); }
+.vocab-row.saved .save-btn { background: rgba(155,89,246,0.10); color: var(--grad-end); }
 
-/* 语法要点 */
-#grammar-container { display: flex; flex-direction: column; gap: 10px; }
-.grammar-point {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--accent);
-  border-radius: 0 8px 8px 0;
-  padding: 12px 14px;
+/* Grammar cards */
+.grammar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 22px 18px;
 }
-.grammar-name { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
-.grammar-explanation { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
-.grammar-example { font-size: 13px; color: var(--text-faint); font-style: italic; }
+.grammar-item {
+  background: var(--surface2);
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+.grammar-point-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 5px;
+}
+.grammar-explanation {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.65;
+  margin-bottom: 4px;
+}
+.grammar-example {
+  font-size: 13px;
+  color: var(--text-faint);
+  font-style: italic;
+  line-height: 1.65;
+}
 
-/* ── 词汇本 ── */
-#vocab-book-view { display: none; }
+/* ── Vocab book ── */
+#vocab-book-view { display: none; padding: 0 0 48px; }
 #vocab-book-view.visible { display: block; }
 
 .vocab-book-header {
@@ -397,168 +471,180 @@ main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
+  padding: 20px 0 0;
 }
-.vocab-book-header h2 { font-size: 18px; font-weight: 700; }
+.vocab-book-header h2 { font-size: 22px; font-weight: 800; }
 
 #vocab-search {
-  padding: 8px 14px;
+  padding: 9px 16px;
   border: 1.5px solid var(--border);
-  border-radius: 8px;
-  font-size: 13px;
+  border-radius: 12px;
+  font-size: 14px;
   outline: none;
   width: 220px;
   background: var(--surface);
   color: var(--text);
-  transition: border-color .15s;
+  font-family: inherit;
+  transition: border-color 0.15s;
 }
-#vocab-search:focus { border-color: var(--accent); }
+#vocab-search:focus { border-color: var(--grad-end); }
 
-.vocab-list { display: flex; flex-direction: column; gap: 8px; }
+.vocab-list { display: flex; flex-direction: column; gap: 10px; }
 
 .vocab-list-item {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px 16px;
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
+  border-radius: 16px;
+  padding: 14px 18px;
+  display: grid;
+  grid-template-columns: 130px 1fr auto;
+  align-items: start;
+  gap: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 }
-.vocab-list-word { font-size: 22px; font-weight: 700; min-width: 80px; }
-.vocab-list-reading { font-size: 12px; color: var(--text-muted); }
-.vocab-list-info { flex: 1; }
-.vocab-list-meaning { font-size: 14px; color: var(--text); margin: 2px 0 4px; }
-.vocab-list-example { font-size: 12px; color: var(--text-muted); }
-.vocab-list-example-zh { font-size: 11px; color: var(--text-faint); font-style: italic; }
-.vocab-list-date { font-size: 11px; color: var(--text-faint); margin-top: 4px; }
+.vocab-list-word    { font-size: 22px; font-weight: 700; }
+.vocab-list-reading { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
+.vocab-list-type    { margin-top: 6px; }
+.vocab-list-info    { padding-top: 3px; }
+.vocab-list-meaning { font-size: 15px; color: var(--text); font-weight: 500; margin-bottom: 5px; }
+.vocab-list-example { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+.vocab-list-example-zh { font-size: 12px; color: var(--text-faint); font-style: italic; }
+.vocab-list-date    { font-size: 11px; color: var(--text-faint); margin-top: 6px; }
 
 .delete-btn {
-  padding: 4px 10px;
-  border: 1.5px solid #e74c3c;
-  border-radius: 6px;
+  padding: 5px 12px;
+  border: 1.5px solid rgba(231,76,60,0.4);
+  border-radius: 8px;
   background: transparent;
   color: #e74c3c;
-  font-size: 11px;
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
-  transition: all .15s;
-  flex-shrink: 0;
+  font-family: inherit;
+  transition: all 0.15s;
+  white-space: nowrap;
 }
-.delete-btn:hover { background: #e74c3c; color: #fff; }
+.delete-btn:hover { background: #e74c3c; color: #fff; border-color: #e74c3c; }
 
-.empty-state { text-align: center; color: var(--text-faint); padding: 60px 20px; font-size: 15px; }
-
-/* ── 响应式 ── */
-@media (max-width: 640px) {
-  .translation-container { grid-template-columns: 1fr; grid-template-rows: 1fr 3px 1fr; }
-  .divider { height: 3px; width: 100%; }
-  .divider::after { top: 50%; transform: translateY(-50%); }
-  #vocab-search { width: 160px; }
+.empty-state {
+  text-align: center;
+  color: var(--text-faint);
+  padding: 80px 20px;
+  font-size: 16px;
+  line-height: 1.8;
 }
 </style>
 </head>
 <body>
 
-<nav>
-  <div class="mode-btns">
-    <button class="mode-btn active" data-mode="zh-ja">中日</button>
-    <button class="mode-btn" data-mode="zh-en">中英</button>
-  </div>
-  <span class="brand" id="brand-text">翻译学习</span>
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="translator">翻译</button>
-    <button class="tab-btn" data-tab="vocab-book">词汇本<span class="badge" id="vocab-badge"></span></button>
-  </div>
-  <button id="dark-toggle" title="切换夜间模式">🌙</button>
-</nav>
-
-<main>
-
-  <!-- 翻译视图 -->
-  <div id="translator-view">
-    <div class="style-row">
-      <span class="style-label">风格：</span>
-      <button class="style-btn active" data-style="normal">普通</button>
-      <button class="style-btn" data-style="business">商务礼貌</button>
+<!-- ── Topbar ── -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="mode-switcher">
+      <button class="mode-btn active" data-mode="zh-ja">中日</button>
+      <button class="mode-btn" data-mode="zh-en">中英</button>
     </div>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="translator">翻译</button>
+      <button class="tab-btn" data-tab="vocab-book">词汇本<span class="badge" id="vocab-badge"></span></button>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="style-pill">
+      <button class="style-opt active" data-style="normal">普通</button>
+      <button class="style-opt" data-style="business">商务</button>
+    </div>
+    <button id="dark-toggle" title="切换夜间模式">🌙</button>
+  </div>
+</div>
 
-    <div class="translation-container">
-      <div class="pane" id="pane-zh">
-        <div class="pane-header"><span class="lang-dot"></span>中文</div>
-        <textarea id="zh-input" placeholder="输入中文，自动翻译成日文…" spellcheck="false"></textarea>
+<!-- ── Translator view ── -->
+<div class="main" id="translator-view">
+  <div class="panels">
+    <!-- Source panel -->
+    <div class="panel panel-source">
+      <div class="panel-header">
+        <span class="lang-label" id="label-left">中文</span>
+        <span class="char-count" id="zh-count"></span>
         <button class="clear-btn" id="clear-zh">×</button>
-        <div class="char-count" id="zh-count"></div>
       </div>
-
-      <div class="divider"></div>
-
-      <div class="pane" id="pane-ja">
-        <div class="pane-header"><span class="lang-dot"></span>日本語</div>
-        <div class="skeleton-overlay" id="ja-skeleton">
-          <div class="skeleton-line" style="width:85%"></div>
-          <div class="skeleton-line" style="width:65%"></div>
-          <div class="skeleton-line" style="width:75%"></div>
-        </div>
-        <textarea id="ja-input" placeholder="输入日文，自动翻译成中文…" spellcheck="false"></textarea>
+      <textarea id="zh-input" placeholder="输入中文，自动翻译…" spellcheck="false"></textarea>
+    </div>
+    <!-- Target panel -->
+    <div class="panel panel-target">
+      <div class="panel-header">
+        <span class="lang-label" id="label-right">日本語</span>
+        <button class="copy-btn" id="copy-btn">复制</button>
         <button class="clear-btn" id="clear-ja">×</button>
-        <div class="char-count" id="ja-count"></div>
+      </div>
+      <div class="skeleton-overlay" id="ja-skeleton">
+        <div class="skeleton-line" style="width:80%"></div>
+        <div class="skeleton-line" style="width:58%"></div>
+        <div class="skeleton-line" style="width:70%"></div>
+      </div>
+      <textarea id="ja-input" placeholder="输入日文，自动翻译成中文…" spellcheck="false"></textarea>
+    </div>
+  </div>
+
+  <div id="status-bar"></div>
+
+  <!-- Learning panel -->
+  <div id="learning-panel">
+    <div class="lp-header">
+      <span class="lp-title">学习面板</span>
+      <span class="lp-hint">点击单词保存</span>
+      <div class="lp-tabs">
+        <button class="lp-tab active" data-section="vocab">词汇</button>
+        <button class="lp-tab" data-section="grammar">语法</button>
       </div>
     </div>
-
-    <div id="status-bar"></div>
-
-    <!-- 词汇面板 -->
-    <div id="learning-panel">
-      <div class="panel-section-title">
-        词汇
-        <span class="panel-hint">点击单词即可保存到词汇本</span>
-      </div>
+    <div id="vocab-section">
       <div id="vocab-word-list"></div>
-
-      <div class="panel-section-title" id="grammar-title">语法要点</div>
-      <div id="grammar-container"></div>
+    </div>
+    <div id="grammar-section" style="display:none">
+      <div class="grammar-list" id="grammar-container"></div>
     </div>
   </div>
+</div>
 
-  <!-- 词汇本视图 -->
-  <div id="vocab-book-view">
-    <div class="vocab-book-header">
-      <h2>我的词汇本</h2>
-      <input type="text" id="vocab-search" placeholder="搜索词汇…">
-    </div>
-    <div class="vocab-list" id="vocab-list"></div>
+<!-- ── Vocab book view ── -->
+<div class="main" id="vocab-book-view">
+  <div class="vocab-book-header">
+    <h2>我的词汇本</h2>
+    <input type="text" id="vocab-search" placeholder="搜索词汇…">
   </div>
-
-</main>
+  <div class="vocab-list" id="vocab-list"></div>
+</div>
 
 <script>
 (function () {
   'use strict';
 
-  let currentMode = 'zh-ja';   // 'zh-ja' | 'zh-en'
+  let currentMode  = 'zh-ja';
   let currentStyle = 'normal';
-  let activeSide = null;
+  let activeSide   = null;
   let debounceTimerZh = null;
   let debounceTimerJa = null;
   let abortController = null;
-  let vocabBookData = [];
+  let vocabBookData   = [];
 
   const DEBOUNCE = 800;
 
-  const zhInput    = document.getElementById('zh-input');
-  const jaInput    = document.getElementById('ja-input');
-  const jaSkeleton = document.getElementById('ja-skeleton');
-  const learningPanel = document.getElementById('learning-panel');
-  const vocabWordList = document.getElementById('vocab-word-list');
+  const zhInput          = document.getElementById('zh-input');
+  const jaInput          = document.getElementById('ja-input');
+  const jaSkeleton       = document.getElementById('ja-skeleton');
+  const learningPanel    = document.getElementById('learning-panel');
+  const vocabWordList    = document.getElementById('vocab-word-list');
   const grammarContainer = document.getElementById('grammar-container');
-  const grammarTitle = document.getElementById('grammar-title');
-  const statusBar  = document.getElementById('status-bar');
-  const vocabBadge = document.getElementById('vocab-badge');
-  const clearZhBtn = document.getElementById('clear-zh');
-  const clearJaBtn = document.getElementById('clear-ja');
-  const zhCount    = document.getElementById('zh-count');
-  const jaCount    = document.getElementById('ja-count');
+  const statusBar        = document.getElementById('status-bar');
+  const vocabBadge       = document.getElementById('vocab-badge');
+  const clearZhBtn       = document.getElementById('clear-zh');
+  const clearJaBtn       = document.getElementById('clear-ja');
+  const zhCount          = document.getElementById('zh-count');
+  const labelLeft        = document.getElementById('label-left');
+  const labelRight       = document.getElementById('label-right');
 
-  // ── 夜间模式 ──
+  // ── Dark mode ──
   const darkToggle = document.getElementById('dark-toggle');
   const applyDark = (on) => {
     document.documentElement.classList.toggle('dark', on);
@@ -571,20 +657,16 @@ main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
     localStorage.setItem('dark', on ? '1' : '0');
   });
 
-  // ── 模式切换（中日 / 中英） ──
+  // ── Mode config ──
   const MODES = {
     'zh-ja': {
-      brand: '中日翻译学习',
       leftLabel: '中文', rightLabel: '日本語',
-      leftDot: '#e74c3c', rightDot: '#e84393',
       leftPlaceholder: '输入中文，自动翻译成日文…',
       rightPlaceholder: '输入日文，自动翻译成中文…',
       leftDir: 'zh-ja', rightDir: 'ja-zh'
     },
     'zh-en': {
-      brand: '中英翻译学习',
       leftLabel: '中文', rightLabel: 'English',
-      leftDot: '#e74c3c', rightDot: '#2980b9',
       leftPlaceholder: '输入中文，自动翻译成英文…',
       rightPlaceholder: 'Type English, auto-translate to Chinese…',
       leftDir: 'zh-en', rightDir: 'en-zh'
@@ -594,17 +676,12 @@ main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
   function applyMode(mode) {
     const cfg = MODES[mode];
     currentMode = mode;
-    document.getElementById('brand-text').textContent = cfg.brand;
-    document.querySelector('#pane-zh .pane-header').innerHTML =
-      `<span class="lang-dot" style="background:${cfg.leftDot}"></span>${cfg.leftLabel}`;
-    document.querySelector('#pane-ja .pane-header').innerHTML =
-      `<span class="lang-dot" style="background:${cfg.rightDot}"></span>${cfg.rightLabel}`;
+    labelLeft.textContent  = cfg.leftLabel;
+    labelRight.textContent = cfg.rightLabel;
     zhInput.placeholder = cfg.leftPlaceholder;
     jaInput.placeholder = cfg.rightPlaceholder;
-    // Clear both panes and panel
     zhInput.value = ''; jaInput.value = '';
-    updateCharCount('zh'); updateCharCount('ja');
-    updateClearBtn('zh'); updateClearBtn('ja');
+    updateCharCount('zh'); updateClearBtn('zh'); updateClearBtn('ja');
     hideLearningPanel();
     cancelRequest();
     activeSide = null;
@@ -619,73 +696,95 @@ main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
     });
   });
 
-  // ── 风格切换 ──
-  document.querySelectorAll('.style-btn').forEach(btn => {
+  // ── Style toggle ──
+  document.querySelectorAll('.style-opt').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.style-opt').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       currentStyle = btn.dataset.style;
       if (activeSide === 'zh' && zhInput.value.trim()) triggerTranslation('zh');
     });
   });
 
-  // ── 标签切换 ──
+  // ── Tab switching ──
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       const tab = btn.dataset.tab;
-      if (tab === 'translator') {
-        document.getElementById('translator-view').style.display = '';
-        document.getElementById('vocab-book-view').classList.remove('visible');
-      } else {
-        document.getElementById('translator-view').style.display = 'none';
-        document.getElementById('vocab-book-view').classList.add('visible');
-        loadVocabBook();
-      }
+      document.getElementById('translator-view').style.display = tab === 'translator' ? '' : 'none';
+      const vbv = document.getElementById('vocab-book-view');
+      if (tab === 'vocab-book') { vbv.classList.add('visible'); loadVocabBook(); }
+      else { vbv.classList.remove('visible'); }
     });
   });
 
-  // ── 输入事件 ──
+  // ── Learning panel tabs ──
+  document.querySelectorAll('.lp-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.lp-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const section = tab.dataset.section;
+      document.getElementById('vocab-section').style.display   = section === 'vocab'   ? '' : 'none';
+      document.getElementById('grammar-section').style.display = section === 'grammar' ? '' : 'none';
+    });
+  });
+
+  // ── Copy button ──
+  document.getElementById('copy-btn').addEventListener('click', () => {
+    const text = jaInput.value.trim();
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById('copy-btn');
+      btn.textContent = '已复制';
+      setTimeout(() => { btn.textContent = '复制'; }, 1500);
+    });
+  });
+
+  // ── Input events ──
   zhInput.addEventListener('input', () => {
     activeSide = 'zh';
-    updateCharCount('zh'); updateClearBtn('zh');
     clearTimeout(debounceTimerZh);
+    clearTimeout(debounceTimerJa);
+    cancelRequest();
+    updateCharCount('zh'); updateClearBtn('zh');
     if (!zhInput.value.trim()) { clearJaOutput(); return; }
     debounceTimerZh = setTimeout(() => triggerTranslation('zh'), DEBOUNCE);
   });
 
   jaInput.addEventListener('input', () => {
     activeSide = 'ja';
-    updateCharCount('ja'); updateClearBtn('ja');
     clearTimeout(debounceTimerJa);
+    clearTimeout(debounceTimerZh);
+    cancelRequest();
+    updateClearBtn('ja');
     if (!jaInput.value.trim()) { clearZhOutput(); return; }
     debounceTimerJa = setTimeout(() => triggerTranslation('ja'), DEBOUNCE);
   });
 
-  // ── 清空按钮 ──
+  // ── Clear buttons ──
   clearZhBtn.addEventListener('click', () => {
     zhInput.value = ''; activeSide = null;
-    clearZhOutput(); clearJaOutput(); hideLearningPanel();
+    clearJaOutput(); hideLearningPanel();
     updateClearBtn('zh'); updateCharCount('zh'); cancelRequest();
   });
   clearJaBtn.addEventListener('click', () => {
     jaInput.value = ''; activeSide = null;
-    clearZhOutput(); clearJaOutput(); hideLearningPanel();
-    updateClearBtn('ja'); updateCharCount('ja'); cancelRequest();
+    clearZhOutput(); hideLearningPanel();
+    updateClearBtn('ja'); cancelRequest();
   });
 
   function clearJaOutput() {
     jaInput.value = ''; jaSkeleton.classList.remove('active');
-    updateCharCount('ja'); updateClearBtn('ja');
+    updateClearBtn('ja');
   }
   function clearZhOutput() {
     zhInput.value = ''; updateCharCount('zh'); updateClearBtn('zh');
   }
   function updateCharCount(side) {
-    const el = side === 'zh' ? zhCount : jaCount;
-    const v  = side === 'zh' ? zhInput.value : jaInput.value;
-    el.textContent = v.length > 0 ? v.length + ' 字' : '';
+    if (side === 'zh') {
+      zhCount.textContent = zhInput.value.length > 0 ? zhInput.value.length + ' 字' : '';
+    }
   }
   function updateClearBtn(side) {
     const inp = side === 'zh' ? zhInput : jaInput;
@@ -693,20 +792,21 @@ main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
     btn.classList.toggle('visible', inp.value.length > 0);
   }
 
-  // ── 翻译触发 ──
+  // ── Translation trigger ──
   function triggerTranslation(side) {
     cancelRequest();
     abortController = new AbortController();
     const cfg = MODES[currentMode];
-    if (side === 'zh') doTranslate(zhInput.value.trim(), cfg.leftDir, abortController.signal);
-    else               doTranslate(jaInput.value.trim(), cfg.rightDir, abortController.signal);
+    const dir = side === 'zh' ? cfg.leftDir : cfg.rightDir;
+    const txt = side === 'zh' ? zhInput.value.trim() : jaInput.value.trim();
+    doTranslate(txt, dir, abortController.signal);
   }
   function cancelRequest() {
     if (abortController) { abortController.abort(); abortController = null; }
     jaSkeleton.classList.remove('active');
   }
 
-  // ── 主翻译流 ──
+  // ── Main translation stream ──
   async function doTranslate(text, direction, signal) {
     if (!text) return;
     hideLearningPanel();
@@ -715,12 +815,12 @@ main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
     const isForward = direction === 'zh-ja' || direction === 'zh-en';
     if (isForward) {
       jaSkeleton.classList.add('active');
-      jaInput.value = ''; updateCharCount('ja'); updateClearBtn('ja');
+      jaInput.value = ''; updateClearBtn('ja');
     } else {
       zhInput.value = ''; updateCharCount('zh'); updateClearBtn('zh');
     }
 
-    let vocabBuf = null; let grammarBuf = null;
+    let vocabBuf = null, grammarBuf = null;
 
     try {
       const res = await fetch('/api/translate', {
@@ -755,19 +855,21 @@ main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
 
           if (data.type === 'char') {
             if (isForward && firstChar) { jaSkeleton.classList.remove('active'); firstChar = false; }
-            if (isForward) { jaInput.value += data.char; updateCharCount('ja'); updateClearBtn('ja'); }
+            if (isForward) { jaInput.value += data.char; updateClearBtn('ja'); }
             else           { zhInput.value += data.char; updateCharCount('zh'); updateClearBtn('zh'); }
           } else if (data.type === 'vocab') {
             vocabBuf = data.data;
           } else if (data.type === 'grammar') {
             grammarBuf = data.data;
           } else if (data.type === 'done') {
-            jaSkeleton.classList.remove('active'); setStatus('');
+            jaSkeleton.classList.remove('active');
+            setStatus('');
             if (isForward && vocabBuf && vocabBuf.length > 0) {
               showLearningPanel(vocabBuf, grammarBuf || []);
             }
           } else if (data.type === 'error') {
-            setStatus('错误: ' + data.message); jaSkeleton.classList.remove('active');
+            setStatus('错误: ' + data.message);
+            jaSkeleton.classList.remove('active');
           }
         }
       }
@@ -777,28 +879,28 @@ main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
     }
   }
 
-  // ── 词汇面板 ──
+  // ── Learning panel ──
   function showLearningPanel(vocab, grammar) {
-    learningPanel.classList.add('visible');
+    // Reset to vocab tab
+    document.querySelectorAll('.lp-tab').forEach(t => {
+      t.classList.toggle('active', t.dataset.section === 'vocab');
+    });
+    document.getElementById('vocab-section').style.display   = '';
+    document.getElementById('grammar-section').style.display = 'none';
 
-    // 词汇行
+    // Build vocab rows
     vocabWordList.innerHTML = '';
     (vocab || []).forEach(v => {
       const row = document.createElement('div');
       row.className = 'vocab-row';
       row.innerHTML = `
-        <div class="vocab-row-left">
-          <span class="vocab-type ${getTypeClass(v.type)}">${esc(v.type || '')}</span>
-          <div class="vocab-row-word">${esc(v.word)}</div>
-          <div class="vocab-row-reading">${esc(v.reading || '')}</div>
-        </div>
-        <div class="vocab-row-body">
-          <div class="vocab-row-meaning">${esc(v.meaning || '')}</div>
-          <div class="vocab-row-usage">${esc(v.example || '')}<br><span>${esc(v.example_zh || '')}</span></div>
-        </div>
-        <div class="vocab-row-indicator">＋</div>
+        <span class="vocab-word">${esc(v.word)}</span>
+        <span class="vocab-reading">${esc(v.reading || '')}</span>
+        <span class="type-pill ${getTypeClass(v.type)}">${esc(v.type || '')}</span>
+        <span class="vocab-meaning">${esc(v.meaning || '')}</span>
+        <button class="save-btn" title="保存到词汇本">＋</button>
       `;
-
+      const saveBtn = row.querySelector('.save-btn');
       row.addEventListener('click', async () => {
         if (row.classList.contains('saved') || row.classList.contains('saving')) return;
         row.classList.add('saving');
@@ -808,36 +910,37 @@ main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(v),
           });
+          row.classList.remove('saving');
           if (res.ok) {
-            row.classList.remove('saving');
             row.classList.add('saved');
-            row.querySelector('.vocab-row-indicator').textContent = '✓';
+            saveBtn.textContent = '✓';
             refreshVocabBadge();
-          } else {
-            row.classList.remove('saving');
           }
         } catch {
           row.classList.remove('saving');
         }
       });
-
       vocabWordList.appendChild(row);
     });
 
-    // 语法要点
+    // Build grammar items
     grammarContainer.innerHTML = '';
-    grammarTitle.style.display = '';
     (grammar || []).forEach(g => {
       const div = document.createElement('div');
-      div.className = 'grammar-point';
+      div.className = 'grammar-item';
       div.innerHTML = `
-        <div class="grammar-name">${esc(g.point || '')}</div>
+        <div class="grammar-point-name">${esc(g.point || '')}</div>
         <div class="grammar-explanation">${esc(g.explanation || '')}</div>
         <div class="grammar-example">${esc(g.example || '')}</div>
       `;
       grammarContainer.appendChild(div);
     });
-    if (!grammar || grammar.length === 0) grammarTitle.style.display = 'none';
+
+    // Show grammar tab only if there's grammar data
+    const grammarTab = document.querySelector('.lp-tab[data-section="grammar"]');
+    grammarTab.style.display = grammar && grammar.length > 0 ? '' : 'none';
+
+    learningPanel.classList.add('visible');
   }
 
   function hideLearningPanel() {
@@ -847,10 +950,14 @@ main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
   }
 
   function getTypeClass(type) {
-    return { '名词': 'type-名词', '动词': 'type-动词', '形容词': 'type-形容词', '敬語': 'type-敬語', '副词': 'type-副词' }[type] || 'type-other';
+    const map = {
+      '名词':'type-名词', '动词':'type-动词', '形容词':'type-形容词',
+      '形容动词':'type-形容动词', '副词':'type-副词', '敬語':'type-敬語'
+    };
+    return map[type] || 'type-other';
   }
 
-  // ── 词汇本 ──
+  // ── Vocab book ──
   async function loadVocabBook() {
     try {
       const res = await fetch('/api/vocab/list');
@@ -871,7 +978,9 @@ main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
         <div>
           <div class="vocab-list-word">${esc(v.word)}</div>
           <div class="vocab-list-reading">${esc(v.reading || '')}</div>
-          <span class="vocab-type ${getTypeClass(v.type)}" style="font-size:11px;padding:1px 7px;margin-top:4px;display:inline-block">${esc(v.type || '')}</span>
+          <div class="vocab-list-type">
+            <span class="type-pill ${getTypeClass(v.type)}">${esc(v.type || '')}</span>
+          </div>
         </div>
         <div class="vocab-list-info">
           <div class="vocab-list-meaning">${esc(v.meaning || '')}</div>
@@ -920,7 +1029,9 @@ main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
   function setStatus(msg) { statusBar.textContent = msg; }
 
   function esc(str) {
-    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return String(str)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
   function formatDate(dt) {
