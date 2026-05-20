@@ -256,7 +256,7 @@ body {
 .clear-btn.visible { display: flex; }
 .clear-btn:hover { background: rgba(0,0,0,0.10); }
 
-.panel textarea {
+.panel textarea, .panel-display {
   flex: 1;
   padding: 18px 20px;
   font-size: 19px;
@@ -270,6 +270,19 @@ body {
   min-height: 0;
 }
 .panel textarea::placeholder { color: var(--text-faint); font-size: 16px; }
+
+.panel-display {
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  cursor: text;
+}
+.panel-display mark {
+  background: rgba(255,140,66,0.30);
+  color: inherit;
+  border-radius: 3px;
+  padding: 1px 0;
+}
 
 /* Skeleton */
 .skeleton-overlay {
@@ -598,6 +611,9 @@ body {
         <div class="skeleton-line" style="width:58%"></div>
         <div class="skeleton-line" style="width:70%"></div>
       </div>
+      <!-- display div: forward translation output (supports highlight) -->
+      <div id="ja-display" class="panel-display" style="display:none"></div>
+      <!-- textarea: reverse translation input -->
       <textarea id="ja-input" placeholder="输入日文，自动翻译成中文…" spellcheck="false"></textarea>
     </div>
   </div>
@@ -656,6 +672,9 @@ body {
   const zhCount          = document.getElementById('zh-count');
   const labelLeft        = document.getElementById('label-left');
   const labelRight       = document.getElementById('label-right');
+  const jaDisplay        = document.getElementById('ja-display');
+  let currentTranslation = '';
+  let translationSeq     = 0;
 
   // ── Dark mode ──
   const darkToggle = document.getElementById('dark-toggle');
@@ -694,6 +713,8 @@ body {
     zhInput.placeholder = cfg.leftPlaceholder;
     jaInput.placeholder = cfg.rightPlaceholder;
     zhInput.value = ''; jaInput.value = '';
+    jaDisplay.style.display = 'none'; jaDisplay.innerHTML = '';
+    jaInput.style.display = ''; currentTranslation = '';
     updateCharCount('zh'); updateClearBtn('zh'); updateClearBtn('ja');
     hideLearningPanel();
     cancelRequest();
@@ -735,7 +756,7 @@ body {
 
   // ── Copy button ──
   document.getElementById('copy-btn').addEventListener('click', () => {
-    const text = jaInput.value.trim();
+    const text = jaDisplay.style.display !== 'none' ? currentTranslation : jaInput.value.trim();
     if (!text) return;
     navigator.clipboard.writeText(text).then(() => {
       const btn = document.getElementById('copy-btn');
@@ -778,9 +799,21 @@ body {
   });
 
   function clearJaOutput() {
-    jaInput.value = ''; jaSkeleton.classList.remove('active');
+    jaInput.value = '';
+    jaDisplay.style.display = 'none';
+    jaDisplay.innerHTML = '';
+    jaInput.style.display = '';
+    currentTranslation = '';
+    jaSkeleton.classList.remove('active');
     updateClearBtn('ja');
   }
+
+  jaDisplay.addEventListener('click', () => {
+    jaDisplay.style.display = 'none';
+    jaInput.value = currentTranslation;
+    jaInput.style.display = '';
+    jaInput.focus();
+  });
   function clearZhOutput() {
     zhInput.value = ''; updateCharCount('zh'); updateClearBtn('zh');
   }
@@ -790,9 +823,12 @@ body {
     }
   }
   function updateClearBtn(side) {
-    const inp = side === 'zh' ? zhInput : jaInput;
     const btn = side === 'zh' ? clearZhBtn : clearJaBtn;
-    btn.classList.toggle('visible', inp.value.length > 0);
+    if (side === 'zh') {
+      btn.classList.toggle('visible', zhInput.value.length > 0);
+    } else {
+      btn.classList.toggle('visible', jaInput.value.length > 0 || currentTranslation.length > 0);
+    }
   }
 
   // ── Translation trigger ──
@@ -814,16 +850,18 @@ body {
     if (!text) return;
     hideLearningPanel();
     setStatus('翻译中…');
+    translationSeq++;
+    const mySeq = translationSeq;
 
     const isForward = direction === 'zh-ja' || direction === 'zh-en';
     if (isForward) {
       jaSkeleton.classList.add('active');
-      jaInput.value = ''; updateClearBtn('ja');
+      jaDisplay.style.display = 'none'; jaDisplay.innerHTML = '';
+      jaInput.style.display = 'none';
+      currentTranslation = ''; updateClearBtn('ja');
     } else {
       zhInput.value = ''; updateCharCount('zh'); updateClearBtn('zh');
     }
-
-    let vocabBuf = null, grammarBuf = null;
 
     try {
       const res = await fetch('/api/translate', {
@@ -837,6 +875,7 @@ body {
         const err = await res.json().catch(() => ({}));
         setStatus('翻译失败: ' + (err.error || res.status));
         jaSkeleton.classList.remove('active');
+        if (isForward) { jaInput.style.display = ''; }
         return;
       }
 
@@ -857,28 +896,56 @@ body {
           try { data = JSON.parse(chunk.slice(6)); } catch { continue; }
 
           if (data.type === 'char') {
-            if (isForward && firstChar) { jaSkeleton.classList.remove('active'); firstChar = false; }
-            if (isForward) { jaInput.value += data.char; updateClearBtn('ja'); }
-            else           { zhInput.value += data.char; updateCharCount('zh'); updateClearBtn('zh'); }
-          } else if (data.type === 'vocab') {
-            vocabBuf = data.data;
-          } else if (data.type === 'grammar') {
-            grammarBuf = data.data;
+            if (isForward && firstChar) {
+              jaSkeleton.classList.remove('active');
+              jaDisplay.style.display = '';
+              firstChar = false;
+            }
+            if (isForward) {
+              currentTranslation += data.char;
+              jaDisplay.textContent = currentTranslation;
+              updateClearBtn('ja');
+            } else {
+              zhInput.value += data.char; updateCharCount('zh'); updateClearBtn('zh');
+            }
           } else if (data.type === 'done') {
             jaSkeleton.classList.remove('active');
             setStatus('');
-            if (isForward) {
-              showLearningPanel(vocabBuf || [], grammarBuf || []);
+            if (isForward && mySeq === translationSeq) {
+              analyzeAndShow(currentTranslation, direction === 'zh-ja' ? 'ja' : 'en', mySeq);
             }
           } else if (data.type === 'error') {
             setStatus('错误: ' + data.message);
             jaSkeleton.classList.remove('active');
+            if (isForward) { jaDisplay.style.display = 'none'; jaInput.style.display = ''; }
           }
         }
       }
     } catch (err) {
       if (err.name === 'AbortError') return;
       console.error(err); setStatus('网络错误'); jaSkeleton.classList.remove('active');
+      if (isForward) { jaDisplay.style.display = 'none'; jaInput.style.display = ''; }
+    }
+  }
+
+  async function analyzeAndShow(text, targetLang, seq) {
+    setStatus('分析词汇中…');
+    try {
+      const res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, targetLang }),
+      });
+      if (translationSeq !== seq) return;
+      setStatus('');
+      if (!res.ok) { showLearningPanel([], []); return; }
+      const data = await res.json();
+      if (translationSeq !== seq) return;
+      showLearningPanel(data.vocab || [], data.grammar || []);
+    } catch {
+      if (translationSeq !== seq) return;
+      setStatus('');
+      showLearningPanel([], []);
     }
   }
 
@@ -888,7 +955,7 @@ body {
     // Build vocab rows
     vocabWordList.innerHTML = '';
     if (!vocab || vocab.length === 0) {
-      vocabWordList.innerHTML = '<div style="padding:16px 22px;font-size:13px;color:var(--text-faint);">词汇提取中，请稍候或重新翻译…</div>';
+      vocabWordList.innerHTML = '<div style="padding:16px 22px;font-size:13px;color:var(--text-faint);">暂无词汇数据</div>';
     }
     (vocab || []).forEach(v => {
       const row = document.createElement('div');
@@ -936,6 +1003,21 @@ body {
           row.classList.remove('saving');
         }
       });
+
+      // Hover: highlight word in jaDisplay
+      const word = v.word;
+      row.addEventListener('mouseenter', () => {
+        if (!currentTranslation || jaDisplay.style.display === 'none') return;
+        const wordEsc = esc(word);
+        const regex = new RegExp(wordEsc.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+        jaDisplay.innerHTML = esc(currentTranslation)
+          .replace(/\n/g, '<br>')
+          .replace(regex, `<mark>${wordEsc}</mark>`);
+      });
+      row.addEventListener('mouseleave', () => {
+        if (jaDisplay.style.display !== 'none') jaDisplay.textContent = currentTranslation;
+      });
+
       vocabWordList.appendChild(row);
     });
 
