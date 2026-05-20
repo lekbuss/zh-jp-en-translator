@@ -867,8 +867,8 @@ body {
           } else if (data.type === 'done') {
             jaSkeleton.classList.remove('active');
             setStatus('');
-            if (isForward && vocabBuf && vocabBuf.length > 0) {
-              showLearningPanel(vocabBuf, grammarBuf || []);
+            if (isForward) {
+              showLearningPanel(vocabBuf || [], grammarBuf || []);
             }
           } else if (data.type === 'error') {
             setStatus('错误: ' + data.message);
@@ -887,6 +887,9 @@ body {
 
     // Build vocab rows
     vocabWordList.innerHTML = '';
+    if (!vocab || vocab.length === 0) {
+      vocabWordList.innerHTML = '<div style="padding:16px 22px;font-size:13px;color:var(--text-faint);">词汇提取中，请稍候或重新翻译…</div>';
+    }
     (vocab || []).forEach(v => {
       const row = document.createElement('div');
       row.className = 'vocab-row';
